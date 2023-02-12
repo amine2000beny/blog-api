@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const { v4: uuidv4 } = require("uuid");
-const Comment = require("./comment");
 
 const postSchema = new mongoose.Schema({
     content: {
