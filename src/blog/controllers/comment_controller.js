@@ -35,7 +35,7 @@ const createComment = async (req, res) => {
 const deleteComment = async (req, res) => {
     try {
         const comment = await Comment.findOneAndDelete({
-            id: req.params.id
+            id: req.params.id,
         });
 
         if (!comment) {

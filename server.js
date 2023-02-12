@@ -2,6 +2,7 @@ const express = require("express");
 const passport = require("passport");
 const { authenticate } = require("./src/middlewares/authenticate");
 const cookieSession = require("cookie-session");
+
 require("dotenv").config();
 require("./db").connect();
 require("./src/auth_providers/passport");

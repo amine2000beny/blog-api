@@ -3,6 +3,9 @@ const Company = require("../models/company");
 
 const { getUrl } = require("../../../utils/getter");
 const { removeFields } = require("../../../utils/remover");
+const { getComments } = require("../../helpers");
+const Post = require("../../blog/models/post");
+const Profile = require("../models/profile");
 
 const createProfile = async (req, res) => {
     const { kind, ...body } = req.body;
@@ -35,6 +38,97 @@ const createProfile = async (req, res) => {
     }
 };
 
+const deleteProfile = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const profile = await Profile.findOne({ id: id }).exec();
+        if (!profile) {
+            return res.status(404).json({ msg: "Profile not found" });
+        }
+
+        await profile.delete();
+
+        res.status(204).end();
+    } catch (err) {
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+const getProfileById = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const profile = await Profile.findOne({ id: id }).select("-_id -__v").lean().exec();
+
+        if (!profile) {
+            return res.status(404).json({ msg: "Profile not found" });
+        }
+
+        res.status(200).json({ profile });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+const getProfileComments = async (req, res) => {
+    const { id } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+
+    try {
+        const comments = await getComments({ createdBy: id }, page, limit);
+
+        res.status(200).json(comments);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+const getProfilePosts = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const posts = await Post.aggregate([
+            {
+                $match: { createdBy: id },
+            },
+            {
+                $lookup: {
+                    from: "comments",
+                    localField: "id",
+                    foreignField: "postId",
+                    as: "comments",
+                },
+            },
+            {
+                $project: {
+                    createdAt: 1,
+                    createdBy: 1,
+                    commentsCount: { $size: "$comments" },
+                    id: 1,
+                    title: 1,
+                    _id: 0,
+                },
+            },
+        ]).exec();
+
+        res.status(200).json({ posts });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+const getProfiles = async (req, res) => {
+    const profiles = await Profile.find({ owner: req.account }).select("-_id -__v");
+
+    res.json(profiles);
+};
+
 module.exports = {
     createProfile,
+    deleteProfile,
+    getProfileById,
+    getProfileComments,
+    getProfilePosts,
+    getProfiles,
 };

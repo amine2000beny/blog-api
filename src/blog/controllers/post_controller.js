@@ -129,7 +129,9 @@ const updatePost = async (req, res) => {
         const post = await Post.findOneAndUpdate({ id }, update, {
             new: true,
             runValidators: true,
-        }).select("-_id -__v").exec();
+        })
+            .select("-_id -__v")
+            .exec();
 
         if (!post) {
             return res.status(404).json({ msg: RESPONSE_MESSAGES.POST_NOT_FOUND });
