@@ -6,14 +6,15 @@ const { removeFields } = require("../../../utils/remover");
 
 const createProfile = async (req, res) => {
     const { kind, ...body } = req.body;
-    let profile;
-
-    const profileExists = await Person.find({ owner: req.account }).exec();
-    if (profileExists.length >= 5) {
-        return res.status(400).json({ msg: "You already have 5 profiles" });
-    }
 
     try {
+        const profileExists = await Person.find({ owner: req.account }).exec();
+        if (profileExists.length >= 5) {
+            return res.status(400).json({ msg: "You already have 5 profiles" });
+        }
+
+        let profile;
+
         switch (kind) {
             case "person":
                 profile = new Person({ ...body, owner: req.account });

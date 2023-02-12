@@ -3,6 +3,7 @@ const Profile = require("./models/profile");
 const Post = require("../blog/models/post");
 
 const { createProfile } = require("./controllers/profile_controller");
+const { getComments } = require("../helpers");
 
 // @route   GET /
 router.get("/", async (req, res) => {
@@ -72,9 +73,31 @@ router.get("/:id/posts", async (req, res) => {
     const { id } = req.params;
 
     try {
-        const posts = await Post.find({ createdBy: id }).select("-_id -__v").exec();
+        const posts = await Post.aggregate([
+            {
+                $match: { createdBy: id },
+            },
+            {
+                $lookup: {
+                    from: "comments",
+                    localField: "id",
+                    foreignField: "postId",
+                    as: "comments",
+                },
+            },
+            {
+                $project: {
+                    createdAt: 1,
+                    createdBy: 1,
+                    commentsCount: { $size: "$comments" },
+                    id: 1,
+                    title: 1,
+                    _id: 0,
+                },
+            },
+        ]).exec();
 
-        res.status(200).json({ posts: posts });
+        res.status(200).json({ posts });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -83,11 +106,12 @@ router.get("/:id/posts", async (req, res) => {
 // @route   GET /:id/comments
 router.get("/:id/comments", async (req, res) => {
     const { id } = req.params;
+    const { page = 1, limit = 10 } = req.query;
 
     try {
-        const comments = await Comment.find({ owner: id }).select("-_id -__v").exec();
+        const comments = await getComments({ createdBy: id }, page, limit);
 
-        res.status(200).json({ comments: comments });
+        res.status(200).json(comments);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

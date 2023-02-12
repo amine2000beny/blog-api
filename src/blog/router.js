@@ -5,13 +5,6 @@ const { createPost, deletePost, getAll, getById, updatePost } = require("./contr
 const { createComment, deleteComment, getAllComments } = require("./controllers/comment_controller");
 const { isOwner } = require("./middlewares");
 
-router.use((req, res, next) => {
-    delete req.body.id;
-    delete req.body.__v;
-
-    next();
-});
-
 // @route   GET /blog/posts
 router.get("/posts", getAll);
 

@@ -35,7 +35,7 @@ const isOwner = async function (req, res, next) {
     }
 
     const profile = await Profile.findOne({ id: req.body.createdBy }).lean().exec();
-    if (!profile || profile.owner !== req.account) {
+    if (!profile || (profile.owner !== req.account && profile.id === req.body.createdBy)) {
         return res.status(401).json({ msg: "Unauthorized" });
     }
 

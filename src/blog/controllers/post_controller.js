@@ -39,7 +39,7 @@ const deletePost = async (req, res) => {
     }
 
     try {
-        await Comment.deleteMany({ post: id });
+        await Comment.deleteMany({ postId: id });
         res.status(204).end();
     } catch (err) {
         res.status(500).json({ msg: err.message });
@@ -65,7 +65,7 @@ const getAll = async (req, res) => {
                 $lookup: {
                     from: "comments",
                     localField: "id",
-                    foreignField: "id_post",
+                    foreignField: "postId",
                     as: "comments",
                 },
             },
@@ -103,7 +103,7 @@ const getById = async (req, res) => {
             return res.status(404).json({ msg: RESPONSE_MESSAGES.POST_NOT_FOUND });
         }
 
-        post.commentsCount = await Comment.countDocuments({ id_post: post.id });
+        post.commentsCount = await Comment.countDocuments({ postId: post.id });
 
         res.status(200).json({ post });
     } catch (err) {
@@ -136,7 +136,7 @@ const updatePost = async (req, res) => {
         }
 
         res.header("Location", getUrl(req, id));
-        res.status(200).json({ post });
+        res.status(200).json(post);
     } catch (err) {
         res.status(500).json({ msg: err.message });
     }

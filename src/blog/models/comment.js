@@ -18,7 +18,7 @@ const commentSchema = new mongoose.Schema({
         type: String,
         default: uuidv4,
     },
-    id_post: {
+    postId: {
         type: String,
         ref: "Post",
     },
