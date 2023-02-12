@@ -6,6 +6,7 @@ const RESPONSE_MESSAGES = require("../../../__constants__/response_messages");
 const { getUrl } = require("../../../utils/getter");
 const { removeFields } = require("../../../utils/remover");
 const { _lengthValidator } = require("../validator");
+const { getPosts } = require("../../helpers");
 
 const createPost = async (req, res) => {
     const { content, createdBy, title } = req.body;
@@ -50,45 +51,9 @@ const getAll = async (req, res) => {
     const { page = 1, limit = 10 } = req.query;
 
     try {
-        const postCount = await Post.countDocuments();
-        const posts = await Post.aggregate([
-            {
-                $sort: { createdAt: -1 },
-            },
-            {
-                $skip: (page - 1) * limit,
-            },
-            {
-                $limit: parseInt(limit),
-            },
-            {
-                $lookup: {
-                    from: "comments",
-                    localField: "id",
-                    foreignField: "postId",
-                    as: "comments",
-                },
-            },
-            {
-                $project: {
-                    commentsCount: { $size: "$comments" },
-                    createdAt: 1,
-                    createdBy: 1,
-                    content: 1,
-                    id: 1,
-                    title: 1,
-                    updatedAt: 1,
-                    _id: 0,
-                },
-            },
-        ]).exec();
+        const posts = await getPosts({}, page, limit);
 
-        res.status(200).json({
-            posts,
-            count: postCount,
-            currentPage: parseInt(page),
-            totalPages: Math.ceil(postCount / limit),
-        });
+        res.status(200).json(posts);
     } catch (err) {
         res.status(500).json({ msg: err.message });
     }

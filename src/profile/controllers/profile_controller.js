@@ -3,8 +3,7 @@ const Company = require("../models/company");
 
 const { getUrl } = require("../../../utils/getter");
 const { removeFields } = require("../../../utils/remover");
-const { getComments } = require("../../helpers");
-const Post = require("../../blog/models/post");
+const { getComments, getPosts } = require("../../helpers");
 const Profile = require("../models/profile");
 
 const createProfile = async (req, res) => {
@@ -88,31 +87,9 @@ const getProfilePosts = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const posts = await Post.aggregate([
-            {
-                $match: { createdBy: id },
-            },
-            {
-                $lookup: {
-                    from: "comments",
-                    localField: "id",
-                    foreignField: "postId",
-                    as: "comments",
-                },
-            },
-            {
-                $project: {
-                    createdAt: 1,
-                    createdBy: 1,
-                    commentsCount: { $size: "$comments" },
-                    id: 1,
-                    title: 1,
-                    _id: 0,
-                },
-            },
-        ]).exec();
+        const posts = await getPosts({ createdBy: id });
 
-        res.status(200).json({ posts });
+        res.status(200).json(posts);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
