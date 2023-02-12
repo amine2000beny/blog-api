@@ -2,10 +2,8 @@ const express = require("express");
 const router = express.Router();
 
 const { createPost, deletePost, getAll, getById, updatePost } = require("./controllers/post_controller");
-
 const { createComment, deleteComment, getAllComments } = require("./controllers/comment_controller");
-
-const { postExistsMiddleware, contentBodyMiddleware } = require("./middlewares");
+const { isOwner } = require("./middlewares");
 
 router.use((req, res, next) => {
     delete req.body.id;
@@ -18,24 +16,24 @@ router.use((req, res, next) => {
 router.get("/posts", getAll);
 
 // @route   GET /blog/posts/:id
-router.get("/posts/:id", postExistsMiddleware, getById);
+router.get("/posts/:id", getById);
 
 // @route   POST /blog/posts
-router.post("/posts", contentBodyMiddleware, createPost);
+router.post("/posts", isOwner, createPost);
 
 // @route   PUT /blog/posts/:id
-router.patch("/posts/:id", postExistsMiddleware, contentBodyMiddleware, updatePost);
+router.patch("/posts/:id", isOwner, updatePost);
 
 // @route   DELETE api/blog/posts/:id
-router.delete("/posts/:id", postExistsMiddleware, deletePost);
+router.delete("/posts/:id", isOwner, deletePost);
 
 // @route   GET /blog/posts/:id/comments
-router.get("/posts/:id/comments", postExistsMiddleware, getAllComments);
+router.get("/posts/:id/comments", getAllComments);
 
 // @route   POST /blog/posts/:id/comments
-router.post("/posts/:id/comments", postExistsMiddleware, createComment);
+router.post("/posts/:id/comments", isOwner, createComment);
 
 // @route   DELETE /blog/comments/:commentId
-router.delete("/comments/:id", deleteComment);
+router.delete("/comments/:id", isOwner, deleteComment);
 
 module.exports = router;

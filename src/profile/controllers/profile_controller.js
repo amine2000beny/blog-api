@@ -8,13 +8,18 @@ const createProfile = async (req, res) => {
     const { kind, ...body } = req.body;
     let profile;
 
+    const profileExists = await Person.find({ owner: req.account }).exec();
+    if (profileExists.length >= 5) {
+        return res.status(400).json({ msg: "You already have 5 profiles" });
+    }
+
     try {
         switch (kind) {
             case "person":
-                profile = new Person(body);
+                profile = new Person({ ...body, owner: req.account });
                 break;
             case "company":
-                profile = new Company(body);
+                profile = new Company({ ...body, owner: req.account });
                 break;
             default:
                 return res.status(400).json({ msg: "Invalid kind" });

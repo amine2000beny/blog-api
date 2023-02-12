@@ -4,16 +4,24 @@ const Post = require("../models/post");
 const { getUrl } = require("../../../utils/getter");
 const { removeFields } = require("../../../utils/remover");
 
+const RESPONSE_MESSAGES = require("../../../__constants__/response_messages");
+
 const createComment = async (req, res) => {
     const { id } = req.params;
 
+    const post = await Post.findOne({ id: id }).exec();
+    if (!post) {
+        return res.status(404).json({ msg: RESPONSE_MESSAGES.POST_NOT_FOUND });
+    }
+
     try {
-        //TODO
-        const comment = new Comment({ ...req.body, id_post: id });
+        const comment = new Comment({
+            ...req.body,
+            createdBy: req.body.createdBy,
+            id_post: id,
+        });
 
-        req.post.commentsCount++;
-
-        await Promise.all([req.post.save(), comment.save()]);
+        await Promise.all([post.save(), comment.save()]);
 
         res.header("Location", getUrl(req, comment.id));
         res.status(201).json({ comment: removeFields(comment.toObject()) });
@@ -31,11 +39,6 @@ const deleteComment = async (req, res) => {
             return res.status(404).json({ msg: "Comment not found" });
         }
 
-        const post = await Post.findOne({ id: comment.post }).exec();
-        post.commentsCount--;
-
-        await post.save();
-
         res.status(204).end();
     } catch (err) {
         res.status(500).json({ msg: err.message });
@@ -45,6 +48,11 @@ const deleteComment = async (req, res) => {
 const getAllComments = async (req, res) => {
     const { id } = req.params;
     const { page = 1, limit = 10 } = req.query;
+
+    const post = await Post.findOne({ id: id }).exec();
+    if (!post) {
+        return res.status(404).json({ msg: RESPONSE_MESSAGES.POST_NOT_FOUND });
+    }
 
     const comments = await Comment.find({ id_post: id })
         .limit(limit)

@@ -1,11 +1,8 @@
 const mongoose = require("mongoose");
 const { v4: uuidv4 } = require("uuid");
+const Comment = require("./comment");
 
 const postSchema = new mongoose.Schema({
-    commentsCount: {
-        type: Number,
-        default: 0,
-    },
     content: {
         type: String,
     },
@@ -13,14 +10,13 @@ const postSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
+    createdBy: {
+        type: String,
+        ref: "Profile",
+    },
     id: {
         type: String,
         default: uuidv4,
-    },
-    // TODO
-    owner: {
-        type: String,
-        ref : "Profile",
     },
     title: {
         type: String,
