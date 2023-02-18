@@ -1,14 +1,26 @@
 const Account = require("../models/account");
 const { emailValidator, passwordValidator } = require("../validators");
 const { getUrl } = require("../../../utils/getter");
+const profile = require("../../profile/models/profile");
+const post = require("../../blog/models/post");
+const comment = require("../../blog/models/comment");
 
 const deleteAccount = async (req, res) => {
     const { email } = req.body;
 
     try {
-        const account = await Account.findOneAndDelete({ email });
+        const account = await Account.findOne({ email: email });
         if (!account) {
             res.status(404).json({ error: "Account not found" });
+        }
+        const { id } = account;
+
+        try {
+            await Promise.all([Account.deleteOne({ id }), profile.deleteMany({ owner: id }), post.deleteMany({ owner: id }), comment.deleteMany({ owner: id })]);
+
+            res.status(204).end();
+        } catch (err) {
+            res.status(500).json({ msg: err.message });
         }
 
         res.status(204).end();

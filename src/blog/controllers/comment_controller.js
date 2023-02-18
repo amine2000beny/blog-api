@@ -9,7 +9,7 @@ const createComment = async (req, res) => {
 
     try {
         //TODO
-        const comment = new Comment({ ...req.body, id_post: id });
+        const comment = new Comment({ ...req.body, id_post: id, owner: req.profile.id });
 
         req.post.commentsCount++;
 

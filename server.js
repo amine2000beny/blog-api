@@ -23,6 +23,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 const routes = [
+    { path: "/amine", router: () => console.log("Hello Amine")},
     { path: "/auth", router: require("./src/auth_providers/router") },
     { path: "/account", router: require("./src/account/router") },
     { path: "/blog", router: require("./src/blog/router"), secure: true },

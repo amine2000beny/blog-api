@@ -10,6 +10,7 @@ const createPost = async (req, res) => {
     const post = new Post({
         title: req.body.title,
         content: req.body.content,
+        owner: req.profile.id
     });
 
     try {
